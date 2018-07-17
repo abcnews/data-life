@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>UserDefinedName</key>
+      <string>Autoconnect VPN - Proxied</string>
+      <key>PayloadDisplayName</key>
+      <string>Autoconnect VPN - Proxied</string>
+      <key>PayloadIdentifier</key>
+      <string>mitmproxy.vpn.profile</string>
+      <key>PayloadUUID</key>
+      <string>7DF5BA8F-6433-54A0-64C6-CEB53EBA2F74</string>
+      <key>VPNType</key>
+      <string>L2TP</string>
+      <key>IPSec</key>
+      <dict>
+        <key>AuthenticationMethod</key>
+        <string>SharedSecret</string>
+        <key>LocalIdentifierType</key>
+        <string>KeyID</string>
+        <key>SharedSecret</key>
+        <string>${VPN_IPSEC_PSK}</string>
+      </dict>
+      <key>PPP</key>
+      <dict>
+        <key>AuthName</key>
+        <string>${VPN_USER}</string>
+        <key>AuthPassword</key>
+        <string>${VPN_PASSWORD}</string>
+        <key>CommRemoteAddress</key>
+        <string>${VPN_IP}</string>
+      </dict>
+      <key>OnDemandEnabled</key>
+      <integer>1</integer>
+      <key>OnDemandRules</key>
+      <array>
+        <dict>
+          <!-- VPN Default state -->
+          <key>Action</key>
+          <string>Connect</string>
+        </dict>
+      </array>
+      <key>OverridePrimary</key>
+      <true/>
+      <key>IPv4</key>
+      <dict>
+        <key>OverridePrimary</key>
+        <integer>1</integer>
+      </dict>
+      <key>PayloadType</key>
+      <string>com.apple.vpn.managed</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>Proxies</key>
+      <dict>
+        <key>HTTPEnable</key>
+        <integer>1</integer>
+        <key>HTTPProxy</key>
+        <string>172.20.128.2</string>
+        <key>HTTPPort</key>
+        <integer>8080</integer>
+        <key>HTTPSEnable</key>
+        <integer>1</integer>
+        <key>HTTPSProxy</key>
+        <string>172.20.128.2</string>
+        <key>HTTPSPort</key>
+        <integer>8080</integer>
+      </dict>
+    </dict>
+  </array>
+  <key>PayloadDisplayName</key>
+  <string>MITM VPN Proxied</string>
+  <key>PayloadIdentifier</key>
+  <string>26A1316D-44F9-8427-D564-62F533A8581D</string>
+  <key>PayloadRemovalDisallowed</key>
+  <false/>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadUUID</key>
+  <string>CD240EC5-DEB8-7B21-5904-9E26559348AF</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+</dict>
+</plist>

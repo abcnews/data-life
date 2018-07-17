@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  vpn:
+    image: hwdsl2/ipsec-vpn-server
+    environment:
+      - VPN_IPSEC_PSK=${VPN_IPSEC_PSK}
+      - VPN_USER=${VPN_USER}
+      - VPN_PASSWORD=${VPN_PASSWORD}
+    ports:
+      - "500:500/udp"
+      - "4500:4500/udp"
+    hostname: ipsec-vpn-server
+    privileged: true
+    container_name: ipsec-vpn-server
+    volumes:
+      - /lib/modules:/lib/modules:ro
+    command: /opt/src/run.sh
+    networks:
+      static-network:
+        ipv4_address: 172.20.128.3
+#    network_mode: "host"
+  mitmproxy:
+    build: .
+    ports:
+      - "8080:8080/tcp"
+    volumes: 
+      - proxydata:/proxydata
+    hostname: mitmproxy
+    container_name: mitmproxy
+    # command: mitmdump --mode transparent --showhost
+    command: mitmdump --ssl-insecure # --set proxyauth=${PROXY_USER}:${PROXY_PASS}
+    networks:
+      static-network:
+        ipv4_address: 172.20.128.2
+#    network_mode: "host"
+volumes:
+  proxydata:
+networks:
+  static-network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

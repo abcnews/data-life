@@ -1,0 +1,6 @@
+__pycache__
+.envrc
+.Rproj.user
+*.mobileconfig
+!*.tmpl.mobileconfig
+analysis
