@@ -31,7 +31,7 @@ docker run --rm --volumes-from mitmproxy -v $(pwd)/backup:/backup ubuntu tar czv
 `rsync` it down from local machine
 
 ```bash
-rsync -rvP root@165.227.51.86:~/backup ./
+rsync -rvP root@$VPN_IP:~/backup ./
 ```
 
 This has all been wrapped up into a script at `./scripts/download.sh`
