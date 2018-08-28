@@ -8,36 +8,31 @@ realpath() {
 # Source and set some env variables
 PROJECT_DIR=$(realpath "${BASH_SOURCE%/*}/..")
 DATE=`date +%Y-%m-%d-%H-%M-%S`
-source "$PROJECT_DIR/server/.envrc"
+DATA_DIR="$PROJECT_DIR/analysis/proxydata/$DATE"
+"$PROJECT_DIR/server/.envrc"
+
+mkdir DATA_DIR
 
 # Connect and download the mobile data
 echo "Downloading mobile data"
 ssh root@$VPN_IP 'docker run --rm --volumes-from mitmproxy -v $(pwd)/backup:/backup ubuntu tar czvf /backup/flows.tar.gz /proxydata/dump.json'
 ssh root@$VPN_IP 'docker logs -t mitmproxy > $(pwd)/backup/proxy-mobile.log'
-rsync -rvP root@$VPN_IP:~/backup/* "$PROJECT_DIR/analysis/proxydata/mobile"
+rsync -rvP root@$VPN_IP:~/backup/* /tmp
 
 echo "Unpacking mobile data"
-tar -xzf "$PROJECT_DIR/analysis/proxydata/mobile/flows.tar.gz" --directory /tmp
-mv /tmp/proxydata/dump.json "$PROJECT_DIR/analysis/proxydata/$DATE-dump-mobile.json"
-mv "$PROJECT_DIR/analysis/proxydata/mobile/proxy-mobile.log" "$PROJECT_DIR/analysis/proxydata/$DATE-proxy-mobile.log"
-
-# Connect and download latest laptop data
-echo "Downloading laptop data"
-docker run --rm --volumes-from mitmproxy -v $PROJECT_DIR/analysis/proxydata:/backup ubuntu cp /proxydata/dump.json /backup/$DATE-dump-laptop.json
-docker logs -t mitmproxy > $PROJECT_DIR/analysis/proxydata/$DATE-proxy-laptop.log
-
-echo "Removing payload"
-cat $PROJECT_DIR/analysis/proxydata/$DATE-dump-mobile.json | jq -c "{id, request: .request|del(.content), response: .response|del(.content) }" | jq -c '[leaf_paths as $path | {"key": $path | join(".") | ascii_downcase, "value": getpath($path)}] | from_entries' > $PROJECT_DIR/analysis/proxydata/$DATE-requests-mobile.json
-cat $PROJECT_DIR/analysis/proxydata/$DATE-dump-laptop.json | jq -c "{id, request: .request|del(.content), response: .response|del(.content) }" | jq -c '[leaf_paths as $path | {"key": $path | join(".") | ascii_downcase, "value": getpath($path)}] | from_entries' > $PROJECT_DIR/analysis/proxydata/$DATE-requests-laptop.json
+tar -xzf /tmp/flows.tar.gz --directory /tmp
+mv /tmp/proxydata/dump.json "$DATA_DIR/dump-mobile.json"
+mv /tmp/proxy-mobile.log "$DATA_DIR/proxy-mobile.log"
 
 echo 'Tidying up'
 rm -rf /tmp/proxydata
+rm /tmp/proxy-mobile.log
 
-echo "Setup symlinks"
-rm $PROJECT_DIR/analysis/proxydata/requests-mobile.json
-rm $PROJECT_DIR/analysis/proxydata/requests-laptop.json
-
-ln -s "$PROJECT_DIR/analysis/proxydata/$DATE-requests-mobile.json" "$PROJECT_DIR/analysis/proxydata/requests-mobile.json"
-ln -s "$PROJECT_DIR/analysis/proxydata/$DATE-requests-laptop.json" "$PROJECT_DIR/analysis/proxydata/requests-laptop.json"
+# Connect and download latest laptop data
+echo "Downloading laptop data"
+docker run --rm --volumes-from mitmproxy -v $DATA_DIR:/backup ubuntu cp /proxydata/dump.json /backup/dump-laptop.json
+docker logs -t mitmproxy > $DATA_DIR/proxy-laptop.log
 
 echo "Done"
+
+# cat 2018-08-01-17-12-36-dump-laptop.json | jq -c "{id, request, response}" | jq -c '[leaf_paths as $path | {"key": $path | join(".") | ascii_downcase, "value": getpath($path)}] | from_entries' | jq -sr '(map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv' > test.csv
