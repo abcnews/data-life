@@ -44,7 +44,7 @@ class _TlsStrategy:
 
     def __init__(self):
         # A server_address -> interception results mapping
-        self.history = collections.defaultdict(lambda: collections.deque(maxlen=200))
+        self.history = collections.defaultdict(lambda: collections.deque(maxlen=20))
 
     def should_intercept(self, server_address):
         """

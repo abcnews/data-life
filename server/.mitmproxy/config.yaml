@@ -1,5 +1,6 @@
 scripts:
   - /home/mitmproxy/.mitmproxy/jsondump.py
   - /home/mitmproxy/.mitmproxy/tls_passthrough.py
+dump_encodecontent: "true"
 dump_destination: "/proxydata/dump.json"
 block_global: true

@@ -1,4 +1,4 @@
-FROM mitmproxy/mitmproxy:4.0.3
+FROM mitmproxy/mitmproxy:4.0.4
 
 COPY --chown=mitmproxy .mitmproxy/* /home/mitmproxy/.mitmproxy/
 
