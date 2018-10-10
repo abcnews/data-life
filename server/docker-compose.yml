@@ -16,6 +16,7 @@ services:
     volumes:
       - /lib/modules:/lib/modules:ro
     command: /opt/src/run.sh
+    restart: unless-stopped
     networks:
       static-network:
         ipv4_address: 172.20.128.3
@@ -30,6 +31,7 @@ services:
     container_name: mitmproxy
     # command: mitmdump --mode transparent --showhost
     command: mitmdump --ssl-insecure # --set proxyauth=${PROXY_USER}:${PROXY_PASS}
+    restart: unless-stopped
     networks:
       static-network:
         ipv4_address: 172.20.128.2
