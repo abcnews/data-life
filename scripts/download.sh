@@ -11,10 +11,10 @@ DATE=`date +%Y-%m-%d-%H-%M-%S`
 DATA_DIR="$PROJECT_DIR/analysis/proxydata/$DATE"
 "$PROJECT_DIR/server/.envrc"
 
-mkdir DATA_DIR
+mkdir $DATA_DIR
 
 # Connect and download the mobile data
-echo "Downloading mobile data"
+echo "Downloading mobile data from $VPN_IP"
 ssh root@$VPN_IP 'docker run --rm --volumes-from mitmproxy -v $(pwd)/backup:/backup ubuntu tar czvf /backup/flows.tar.gz /proxydata/dump.json'
 ssh root@$VPN_IP 'docker logs -t mitmproxy > $(pwd)/backup/proxy-mobile.log'
 rsync -rvP root@$VPN_IP:~/backup/* /tmp
@@ -26,7 +26,7 @@ mv /tmp/proxy-mobile.log "$DATA_DIR/proxy-mobile.log"
 
 echo 'Tidying up'
 rm -rf /tmp/proxydata
-rm /tmp/proxy-mobile.log
+# rm /tmp/proxy-mobile.log
 
 # Connect and download latest laptop data
 echo "Downloading laptop data"
