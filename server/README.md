@@ -10,7 +10,7 @@ There are a few environment variables that need to be set. See `.envrc-template`
 
 ## Running the docker containers
 
-There are two docker containers. The first is an extended version of `mitmproxy/mitmproxy:4.0.3` which is built from the `Dockerfile` in `server`. The second is a VPN image which is necessary for reliably intercepting iOS traffic when switching between networks (wi-fi ↔ mobile).
+There are two docker containers. The first is an extended version of `mitmproxy/mitmproxy:4.0.4` which is built from the `Dockerfile` in `server`. The second is a VPN image which is necessary for reliably intercepting iOS traffic when switching between networks (wi-fi ↔ mobile).
 
 The server used for intercepting iOS traffic should live on a publicly accessible server so it can be reached from the mobile data connection.
 
