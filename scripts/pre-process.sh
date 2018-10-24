@@ -14,7 +14,11 @@ echo "Removing payload"
 cat $DATA_DIR/request-response-combined.json | jq -c "{id, device, request: .request|del(.content), response: .response|del(.content) }" | jq -c '[leaf_paths as $path | {"key": $path | join(".") | ascii_downcase, "value": getpath($path)}] | from_entries' > $DATA_DIR/requests-response-combined-no-content.json
 
 echo "Making CSVs"
+# Wide
 cat request-response-combined.json | jq -c "{id, device, request, response}" | jq -c '[leaf_paths as $path | {"key": $path | join(".") | ascii_downcase, "value": getpath($path)}] | from_entries' | jq -sr '(map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv' > request-response-combined.csv
+
+# Narrow
+cat request-response-combined.json |  jq --compact-output --raw-output '{id, device, request, response} | [leaf_paths as $path | {id: .id, field: $path | join(".") | ascii_downcase, value: getpath($path)}] | del(.[0]) | .[] | [.id, .field, .value] | @csv' > all_narrow.csv
 
 echo "Setup symlinks"
 rm $PROJECT_DIR/analysis/proxydata/requests-response-combined-no-content.json
