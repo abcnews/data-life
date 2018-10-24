@@ -76,3 +76,7 @@ ip6tables -t nat -D PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8080
 iptables -D INPUT -p tcp --dport 8080 -j ACCEPT
 ip6tables -D INPUT -p tcp --dport 8080 -j ACCEPT
 ```
+
+## Credits
+
+Aside from [mitmproxy](https://mitmproxy.org) itself I also used a [script from Ed Medvedev](https://github.com/mitmproxy/mitmproxy/pull/2861) to dump all the recorded data to disk.
