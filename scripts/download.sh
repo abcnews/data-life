@@ -8,10 +8,10 @@ realpath() {
 # Source and set some env variables
 PROJECT_DIR=$(realpath "${BASH_SOURCE%/*}/..")
 DATE=`date +%Y-%m-%d-%H-%M-%S`
-DATA_DIR="$PROJECT_DIR/analysis/proxydata/$DATE"
-"$PROJECT_DIR/server/.envrc"
+DATA_DIR="$PROJECT_DIR/analysis/proxydata/increment"
+source "$PROJECT_DIR/server/.envrc"
 
-mkdir $DATA_DIR
+mkdir -p $DATA_DIR
 
 # Connect and download the mobile data
 echo "Downloading mobile data from $VPN_IP"
@@ -34,5 +34,3 @@ docker run --rm --volumes-from mitmproxy -v $DATA_DIR:/backup ubuntu cp /proxyda
 docker logs -t mitmproxy > $DATA_DIR/proxy-laptop.log
 
 echo "Done"
-
-# cat 2018-08-01-17-12-36-dump-laptop.json | jq -c "{id, request, response}" | jq -c '[leaf_paths as $path | {"key": $path | join(".") | ascii_downcase, "value": getpath($path)}] | from_entries' | jq -sr '(map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv' > test.csv
