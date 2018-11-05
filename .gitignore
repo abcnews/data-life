@@ -3,5 +3,3 @@ __pycache__
 .Rproj.user
 *.mobileconfig
 !*.tmpl.mobileconfig
-analysis/*
-!analysis/README.md

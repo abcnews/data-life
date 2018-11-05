@@ -1,0 +1,8 @@
+packrat/lib*/
+proxydata
+*.RData
+.Rhistory
+
+# Exclude all data by default, opt in specific non-sensitive data
+data/*
+!data/domains-all.json
