@@ -15,7 +15,7 @@ mkdir -p $DATA_DIR
 
 # Connect and download latest laptop data
 echo "Downloading laptop data"
-docker run --rm --volumes-from mitmproxy -v $DATA_DIR:/backup eeacms/rsync rsync -rvP --no-R /proxydata/dump.json /backup/dump-laptop.json
+docker run --rm --volumes-from mitmproxy -v $DATA_DIR:/backup rsync:alpine rsync -rvP --no-R /proxydata/dump.json /backup/dump-laptop.json
 docker logs -t mitmproxy > $DATA_DIR/proxy-laptop.log
 
 # Connect and download the mobile data
