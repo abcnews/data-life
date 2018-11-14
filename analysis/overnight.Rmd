@@ -1,0 +1,45 @@
+---
+title: "Overnight"
+output: html_notebook
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+require(tidyverse)
+require(here)
+require(lubridate)
+require(tldextract)
+require(urltools)
+require(RSQLite)
+require(fuzzyjoin)
+source(here::here('functions.R'))
+source(here::here('plots.R'))
+options(scipen = 999)
+```
+
+There was a fair amount of activity overnight.
+
+```{r message=FALSE, warning=FALSE}
+requests_overnight <- get_requests_common() %>% filter(hour(timestamp) %in% c(23,0,1,2,3,4,5) | (hour(timestamp) == 6 & minute(timestamp) < 30))
+plot_requests_histogram(requests_overnight, binwidth = 900)
+```
+
+Top overnight domains?
+
+```{r}
+requests_overnight %>% count(domain) %>% arrange(desc(n))
+```
+
+What if we focus on just on night? The second night looks quiet-ish.
+
+```{r message=FALSE, warning=FALSE}
+requests_second_night <- get_requests_common() %>% filter(timestamp %within% interval(start + days(1) - hours(2), start + days(1) + hours(6) + minutes(30)))
+plot_requests_histogram(requests_second_night, binwidth = 900) + facet_grid(. ~ device)
+```
+
+And the phone was chatting away all night with various domains. And weirdly, because I'm pretty sure the lid was down, the laptop was a bit chatty too.
+
+```{r}
+requests_second_night %>% count(device, domain) %>% arrange(desc(n)) 
+```
+
+

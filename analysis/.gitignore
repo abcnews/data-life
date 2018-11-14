@@ -10,3 +10,6 @@ data/*
 # Exclude all notebooks by default
 *.nb.html
 *.Rmd
+
+!overnight.nb.html
+!overnight.Rmd
