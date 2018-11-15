@@ -1,0 +1,150 @@
+---
+title: "#DataLife: Exploring a week of personal HTTP requests"
+output: html_notebook
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+require(tidyverse)
+require(here)
+require(lubridate)
+require(tldextract)
+require(urltools)
+require(RSQLite)
+require(fuzzyjoin)
+source(here::here('functions.R'))
+source(here::here('plots.R'))
+options(scipen = 999)
+```
+
+Exploring requests between `r start` and `r end`. 
+
+There were a total of `r nrow(get_requests_common() %>% filter(!is.na(id)))` requests intercepted by mitmproxy and `r nrow(get_requests_common() %>% filter(is.na(id)))` requests which were not intercepted.
+
+That makes a total of `r nrow(get_requests_common())` requests for the period which is `r nrow(get_requests_common())/7/24/60` per minute on average.
+
+This is what requests by 15 min block look like.
+
+```{r}
+nights <- tribble(
+  ~start, ~end,
+  start, start + hours(7),
+  start + days(1) - hours(2), start + days(1) + hours(6) + minutes(30),
+  start + days(2) - hours(2), start + days(2) + hours(6) + minutes(30),
+  start + days(3) - hours(2), start + days(3) + hours(6) + minutes(30),
+  start + days(4) - hours(2), start + days(4) + hours(6) + minutes(30),
+  start + days(5) - hours(2), start + days(5) + hours(6) + minutes(30),
+  start + days(6) - hours(2), start + days(6) + hours(6) + minutes(30),
+  start + days(7) - hours(2), start + days(7) + hours(6) + minutes(30)
+)
+layer_data(plot_requests_histogram()) %>% select(y, b=xmin) %>% mutate(b=b-1540735200) %>% jsonlite::write_json(here::here('data','exports','requests-histogram.json'))
+plot_requests_histogram() + geom_rect(data = nights, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf), alpha = 0.1, inherit.aes = F)
+```
+
+Lets take a look at the period on the second night of data when I know I was sleeping and which is pretty quiet.
+
+```{r}
+requests_second_night <- get_requests_common() %>% filter(timestamp %within% interval(start + days(1) - hours(2), start + days(1) + hours(6) + minutes(30)))
+requests_second_night %>% count(domain) %>% arrange(desc(n)) %>% head(15) %>% write_csv(here::here('data','exports','second-night-top-domains.csv'))
+plot_requests_histogram(requests_second_night, binwidth = 900) + facet_grid(. ~ device)
+```
+
+What about by domain?
+
+```{r}
+requests_second_night %>% count(domain) %>% arrange(desc(n))
+```
+
+
+During that period there were `r nrow(requests_second_night)` requests to `r nrow(requests_second_night %>% distinct(domain))` companies. 
+
+
+```{r}
+plot_requests_histogram() + facet_grid(device ~ .)
+```
+
+You can see from the plot above that my laptop makes vastly more requests than my phone.
+
+```{r}
+get_requests_common() %>% mutate(day=floor_date(timestamp, 'day'), hour=hour(timestamp), minute = minute(timestamp)) %>% group_by(device, day, hour, minute) %>% count() %>% arrange(desc(n))
+```
+
+## User agents
+
+```{r}
+get_requests_data() %>% filter(field=='request.headers.user-agent') %>% count(value) %>% arrange(desc(n))
+```
+
+There are `r nrow(get_requests_data() %>% filter(field=='request.headers.user-agent') %>% distinct(value))` user-agents in the data. How many separate domains do each talk to?
+
+```{r}
+
+```
+
+Histograms for most common user-agents.
+
+```{r}
+get_requests_common() %>% 
+  add_field('request.headers.user-agent', rename='ua') %>% 
+  filter(ua %in% (get_requests_common() %>% add_field('request.headers.user-agent', rename='ua') %>% count(ua) %>% filter(n > 1000) %>% arrange(desc(n)))$ua) %>%
+  ggplot(aes(timestamp)) + 
+  abc_theme +
+  labs(
+    x="",
+    y=""
+  ) +
+  geom_histogram(binwidth=1800, boundary=start,fill="#01CFFF") + 
+  facet_wrap(~ua)
+```
+
+
+For the intercepted requests we have a full suite of request and response data including all http headers and content. For the requests we couldn't intercept, only the request host is known.
+
+## Domains
+
+The first thing I want to look at is the overall counts for requests to each top level domain.
+
+```{r}
+domain_counts <- get_requests_common() %>% 
+  count(domain) %>%
+  arrange(desc(n)) %>%
+  mutate(pct=n/nrow(get_requests_common()))
+domain_counts
+```
+
+Google is, by a fair margin, the most talked to domain representing `r round(domain_counts$n[1]/nrow(get_requests_common())*100)`% of requests. The main surprise in that list is runkit.com.
+
+```{r}
+con <- RSQLite::dbConnect(RSQLite::SQLite(), here::here('data','trackerdb.sqlite'))
+trackers_wtm <- get_requests_common() %>% 
+  left_join(tbl_df(dbGetQuery(con, "select tracker as tracker_id, domain from tracker_domains")), by=c("domain"="domain")) %>% 
+  left_join(tbl_df(dbGetQuery(con, "select id as tracker_id, name as tracker_name, company_id from trackers")), by=c("tracker_id"="tracker_id")) %>%
+  left_join(tbl_df(dbGetQuery(con, "select id as company_id, name as company_name from companies")), by=c("company_id"="company_id")) %>%
+  select(-company_id, -tracker_id)
+
+trackers_wtm %>%
+  count(company_name) %>% mutate(pct=n/nrow(trackers_wtm)) %>% arrange(desc(n))
+```
+
+```{r}
+trackers_wtm %>% filter(company_name == 'Google') %>% count(domain, host) %>% arrange(desc(n))
+```
+
+
+```{r}
+trackers_wtm %>% 
+  filter(company_name %in% (trackers_wtm %>%  count(company_name) %>% filter(n > 1000))$company_name) %>%
+  ggplot(aes(timestamp)) + 
+  abc_theme +
+  labs(
+    x="",
+    y=""
+  ) +
+  geom_histogram(binwidth=1800, boundary=start,fill="#01CFFF") + 
+  facet_wrap(~company_name)
+```
+
+```{r}
+trackers_wtm %>% filter(is.na(tracker_name)) %>% count(domain) %>% arrange(desc(n))
+```
+
+
