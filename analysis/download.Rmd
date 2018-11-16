@@ -1,0 +1,37 @@
+---
+title: "Progress check"
+output: html_notebook
+---
+
+```{r message=FALSE, warning=FALSE}
+require(tidyverse)
+require(here)
+require(lubridate)
+source(here::here('functions.R'))
+```
+
+```{r}
+#system2(here::here("..","scripts","download.sh"))
+```
+
+```{r}
+#system(paste("cd", here::here("data","proxy"),"&& ../../../scripts/pre-process.sh"))
+```
+
+
+```{r}
+requests_narrow = read_csv(here::here('data','proxy','meta_narrow.csv'), col_types = "ccc", col_names = c('id','field','value')) %>%
+  distinct(id, field, .keep_all = T) # filter out some weird double ups
+```
+
+```{r}
+requests_narrow %>% filter(field %in% c('request.timestamp_start', 'device')) %>% spread(field, value, convert = T) %>% mutate(request.timestamp_start = bne_date_time(request.timestamp_start)) %>% filter(device=='mobile') %>% ggplot(aes(request.timestamp_start)) + geom_histogram(aes(fill=device), position="stack", binwidth=900) + scale_y_log10()
+```
+
+```{r}
+requests_narrow %>% filter(field %in% c('request.timestamp_start', 'device')) %>% distinct(id, field, .keep_all=T) %>% spread(field, value, convert = T) %>% mutate(request.timestamp_start = bne_date_time(request.timestamp_start))  %>% filter(device=='laptop') %>% ggplot(aes(request.timestamp_start)) + geom_histogram(aes(fill=device), position="stack", binwidth=900) + scale_y_log10()
+```
+
+```{r}
+requests_narrow %>% filter(field %in% c('request.timestamp_start', 'device')) %>% distinct(id, field, .keep_all=T) %>% spread(field, value, convert = T) %>% mutate(request.timestamp_start = bne_date_time(request.timestamp_start))  %>% ggplot(aes(request.timestamp_start)) + geom_histogram(aes(fill=device), position="dodge", binwidth=3600) + scale_y_log10()
+```
